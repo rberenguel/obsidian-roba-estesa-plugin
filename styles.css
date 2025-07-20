@@ -1,0 +1,77 @@
+/* styles.css */
+
+/* Transition Overlay */
+#privacy-plugin-transition-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-primary);
+    z-index: 9999;
+    opacity: 0;
+    display: none;
+    transition: opacity 0.3s ease-out;
+    backdrop-filter: blur(0px);
+}
+
+/* Redaction Components */
+.privacy-plugin-redaction-container {
+    position: relative;
+}
+
+.privacy-plugin-redaction-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-muted);
+    font-style: italic;
+    cursor: grab;
+    z-index: 10;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.privacy-plugin-blur-style .privacy-plugin-redaction-overlay {
+    backdrop-filter: blur(10px);
+}
+
+.privacy-plugin-redaction-overlay.is-dragging {
+    cursor: grabbing;
+    transition: none;
+}
+
+.privacy-plugin-redaction-content {
+    display: none;
+}
+
+/* Full Note Redaction */
+#privacy-plugin-full-note-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-primary);
+    z-index: 9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#privacy-plugin-full-note-overlay .privacy-plugin-redaction-overlay {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+}
+
+.privacy-plugin-full-note-content-wrapper {
+    display: none;
+}

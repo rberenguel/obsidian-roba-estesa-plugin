@@ -1,0 +1,10 @@
+{
+	"id": "roba-estesa",
+	"name": "Roba Estesa",
+	"version": "0.0.1",
+	"minAppVersion": "0.15.0",
+	"description": "",
+	"author": "Your Name",
+	"authorUrl": "https://your-website.com",
+	"isDesktopOnly": false
+}
