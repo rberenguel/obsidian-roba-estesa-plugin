@@ -18,7 +18,10 @@
 
 /* Redaction Components */
 .privacy-plugin-redaction-container {
-	position: relative;
+    display: table;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .privacy-plugin-redaction-overlay {

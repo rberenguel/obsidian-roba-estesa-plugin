@@ -1,4 +1,5 @@
 import { setIcon } from "obsidian";
+import PrivacyPlugin from "../main";
 
 export class RedactionSliderComponent {
 	private containerEl: HTMLElement;
@@ -8,37 +9,50 @@ export class RedactionSliderComponent {
 	private isDragging: boolean = false;
 	private startX: number = 0;
 	private currentX: number = 0;
-	private revealThreshold: number = 50; // Pixels to slide to reveal
+	private revealThreshold: number = 50;
+	private plugin: PrivacyPlugin;
+	private blockId: string | null;
 
 	constructor(
 		containerEl: HTMLElement,
 		redactionStyle: "Solid Block" | "Blur",
+		plugin: PrivacyPlugin,
+		blockId: string | null,
 	) {
+		this.plugin = plugin;
+		this.blockId = blockId;
 		this.containerEl = containerEl;
-		this.containerEl.classList.add("privacy-plugin-redaction-container");
+		this.containerEl.classList.add("privacy-plugin-layout-shell");
 
-		this.overlayEl = this.containerEl.createDiv({
+		const positionWrapper = this.containerEl.createDiv({
+			cls: "privacy-plugin-position-wrapper",
+		});
+
+		this.overlayEl = positionWrapper.createDiv({
 			cls: "privacy-plugin-redaction-overlay",
 		});
-		this.contentEl = this.containerEl.createDiv({
+		this.contentEl = positionWrapper.createDiv({
 			cls: "privacy-plugin-redaction-content",
 		});
 
-		if (redactionStyle === "Blur") {
-			this.containerEl.classList.add("privacy-plugin-blur-style");
-		}
-
 		const childrenToMove = Array.from(this.containerEl.childNodes).filter(
-			(node) => node !== this.overlayEl && node !== this.contentEl,
+			(node) => node !== positionWrapper,
 		);
 		childrenToMove.forEach((node) => this.contentEl.appendChild(node));
 
+		if (redactionStyle === "Blur") {
+			positionWrapper.classList.add("privacy-plugin-blur-style");
+		}
+
+		// --- FIX 1: Use setIcon() to reliably create the icon ---
 		this.overlayEl.empty();
-		const spanIcon = this.overlayEl.createSpan({
+		const iconEl = this.overlayEl.createSpan({
 			cls: "privacy-plugin-icon",
 		});
+		setIcon(iconEl, "eye-off");
 		this.overlayEl.createSpan({ text: " Slide to reveal" });
-		setIcon(spanIcon, "eye-off");
+		// --- END OF FIX 1 ---
+
 		this.overlayEl.addEventListener(
 			"mousedown",
 			this.onMouseDown.bind(this),
@@ -53,7 +67,8 @@ export class RedactionSliderComponent {
 
 	private onMouseDown(e: MouseEvent | TouchEvent) {
 		if (this.isRevealed) return;
-
+		e.stopPropagation();
+		e.preventDefault();
 		this.isDragging = true;
 		this.overlayEl.classList.add("is-dragging");
 
@@ -89,21 +104,23 @@ export class RedactionSliderComponent {
 		const deltaX = this.currentX - this.startX;
 
 		if (deltaX > this.revealThreshold) {
+			if (this.blockId) {
+				this.plugin.revealedBlockIds.add(this.blockId);
+			}
 			this.isRevealed = true;
 			this.overlayEl.style.transform = `translateX(100%)`;
 			this.overlayEl.style.opacity = "0";
-			this.overlayEl.ontransitionend = () => {
-				// --- ADD THIS CHECK ---
-				// If there's no content to reveal, just remove the entire container.
+
+			setTimeout(() => {
+				console.log(this.isRevealed);
+				if (!this.isRevealed) return; // Check if state changed back before firing
+
 				if (this.contentEl.childNodes.length === 0) {
 					this.containerEl.remove();
 					return;
 				}
-				// --- END OF CHANGE ---
-
 				this.updateVisibility();
-				this.overlayEl.ontransitionend = null;
-			};
+			}, 300);
 		} else {
 			this.overlayEl.style.transform = `translateX(0)`;
 			this.overlayEl.style.opacity = "1";
@@ -119,8 +136,7 @@ export class RedactionSliderComponent {
 		if (this.isRevealed) {
 			this.overlayEl.style.display = "none";
 			this.contentEl.style.display = "block";
-			this.overlayEl.style.transform = `translateX(0)`;
-			this.overlayEl.style.opacity = "1";
+			// No need to reset transform/opacity here, as the element is hidden
 		} else {
 			this.overlayEl.style.display = "flex";
 			this.contentEl.style.display = "none";

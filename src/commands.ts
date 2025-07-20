@@ -3,19 +3,25 @@ import PrivacyPlugin from "../main";
 
 export function addPrivacyCommands(plugin: PrivacyPlugin) {
 	plugin.addCommand({
+		id: "reset-revealed-blocks",
+		name: "Privacy: Re-hide all revealed blocks ",
+		callback: () => {
+			plugin.revealedBlockIds.clear();
+			plugin.app.workspace.updateOptions();
+			new Notice("All revealed blocks have been re-hidden.");
+		},
+	});
+	plugin.addCommand({
 		id: "mark-block-as-private",
 		name: "Privacy: Mark block as private",
 		editorCallback: (editor: Editor, view: MarkdownView) => {
 			const cursor = editor.getCursor();
 			const line = editor.getLine(cursor.line);
 
-			// Generate a simple block ID (e.g., based on timestamp)
 			const blockId = `^${Date.now().toString(36)}`;
 
-			// Add the block ID to the end of the current line
 			editor.setLine(cursor.line, `${line} ${blockId}`);
 
-			// Get the current file and its frontmatter
 			const file = view.file;
 			if (!file) {
 				new Notice("No active file to mark.");

@@ -32,7 +32,8 @@ export default class PrivacyPlugin extends Plugin {
 	settings: PrivacyPluginSettings;
 	private transitionOverlayEl: HTMLElement | null = null;
 	redactionManager: RedactionManager;
-	private ribbonIconEl: HTMLElement | null = null; // <-- Add property to store the icon element
+	private ribbonIconEl: HTMLElement | null = null;
+	public revealedBlockIds: Set<string> = new Set();
 
 	constructor(app: App, manifest: any) {
 		super(app, manifest);
@@ -44,10 +45,8 @@ export default class PrivacyPlugin extends Plugin {
 		}
 		const isPrivacyActive = this.settings.isPrivacyModeActive;
 
-		// Change the icon based on the mode
 		setIcon(this.ribbonIconEl, isPrivacyActive ? "eye-off" : "eye");
 
-		// Update the tooltip (aria-label) to reflect the action
 		this.ribbonIconEl.setAttribute(
 			"aria-label",
 			isPrivacyActive
@@ -58,7 +57,11 @@ export default class PrivacyPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		this.redactionManager = new RedactionManager(this.app, this.settings);
+		this.redactionManager = new RedactionManager(
+			this.app,
+			this.settings,
+			this,
+		);
 
 		this.registerEditorExtension(buildPrivacyViewPlugin(this));
 		this.addSettingTab(new PrivacySettingTab(this.app, this));
@@ -66,7 +69,7 @@ export default class PrivacyPlugin extends Plugin {
 		this.transitionOverlayEl = document.createElement("div");
 		this.transitionOverlayEl.id = "privacy-plugin-transition-overlay";
 		document.body.appendChild(this.transitionOverlayEl);
-
+		this.revealedBlockIds.clear();
 		addPrivacyCommands(this);
 
 		this.ribbonIconEl = this.addRibbonIcon(
@@ -92,6 +95,8 @@ export default class PrivacyPlugin extends Plugin {
 				this.app.workspace.updateOptions();
 			},
 		);
+
+		setTimeout(() => this.updateRibbonIcon(), 100);
 
 		const handleFullNoteRedaction = () => {
 			const activeView =

@@ -3,17 +3,23 @@
 import { App, MarkdownView, FrontMatterCache, TFile } from "obsidian";
 import { RedactionSliderComponent } from "./RedactionSliderComponent";
 import { PrivacyPluginSettings } from "../main";
+import PrivacyPlugin from "../main";
 
 export class RedactionManager {
 	private app: App;
 	private settings: PrivacyPluginSettings;
+	private plugin: PrivacyPlugin;
 
-	constructor(app: App, settings: PrivacyPluginSettings) {
+	constructor(
+		app: App,
+		settings: PrivacyPluginSettings,
+		plugin: PrivacyPlugin,
+	) {
 		this.app = app;
+		this.plugin = plugin;
 		this.settings = settings;
 	}
 
-	// Change this method from 'private' to 'public'
 	public isFullNotePrivate(
 		file: TFile,
 		fileCache: FrontMatterCache | null,
@@ -93,6 +99,8 @@ export class RedactionManager {
 			new RedactionSliderComponent(
 				overlay as HTMLElement,
 				this.settings.redactionStyle,
+				this.plugin,
+				null,
 			);
 		}
 		// No 'else' block is needed anymore, as the cleanup runs unconditionally at the start.

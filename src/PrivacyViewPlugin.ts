@@ -12,20 +12,37 @@ import PrivacyPlugin from "../main";
 import { RedactionSliderComponent } from "./RedactionSliderComponent";
 
 class RedactionWidget extends WidgetType {
+	private blockId: string | null = null;
+
 	constructor(
 		private readonly lineText: string,
 		private readonly plugin: PrivacyPlugin,
 	) {
 		super();
+		const match = this.lineText.match(/\^([a-zA-Z0-9]+)$/);
+		if (match) {
+			this.blockId = match[1];
+		}
 	}
 
 	toDOM(view: EditorView): HTMLElement {
 		const container = document.createElement("div");
 		const contentToHide = container.createDiv();
-		contentToHide.textContent = this.lineText;
+
+		// --- NEW: Clean the text before creating the component ---
+		// Strip leading markdown list markers (- , *, 1., etc.)
+		const cleanedText = this.lineText.replace(
+			/^(\s*[-*+]|\s*\d+\.)\s+/,
+			"",
+		);
+		contentToHide.textContent = cleanedText;
+		// --- END OF CHANGE ---
+
 		new RedactionSliderComponent(
 			container,
 			this.plugin.settings.redactionStyle,
+			this.plugin,
+			this.blockId,
 		);
 		return container;
 	}
@@ -71,7 +88,6 @@ export function buildPrivacyViewPlugin(plugin: PrivacyPlugin) {
 						fileCache,
 					)
 				) {
-					// Use Decoration.none for an empty set.
 					return Decoration.none;
 				}
 
@@ -92,6 +108,11 @@ export function buildPrivacyViewPlugin(plugin: PrivacyPlugin) {
 							line.text.match(/\s\^([a-zA-Z0-9]+)$/);
 
 						if (blockIdMatch && idSet.has(blockIdMatch[1])) {
+							const blockId = blockIdMatch[1];
+							if (plugin.revealedBlockIds.has(blockId)) {
+								pos = line.to + 1;
+								continue; // Skip redacting this block
+							}
 							const selection = view.state.selection.main;
 							if (
 								!(
