@@ -2,51 +2,70 @@
 
 /* Transition Overlay */
 #privacy-plugin-transition-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--background-primary);
-    z-index: 9999;
-    opacity: 0;
-    display: none;
-    transition: opacity 0.3s ease-out;
-    backdrop-filter: blur(0px);
-    pointer-events: none; /* Add this line */
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: var(--background-primary);
+	z-index: 9999;
+	opacity: 0;
+	display: none;
+	transition: opacity 0.3s ease-out;
+	backdrop-filter: blur(0px);
+	pointer-events: none; /* Add this line */
 }
 
 /* Redaction Components */
 .privacy-plugin-redaction-container {
-    position: relative;
+	position: relative;
 }
 
 .privacy-plugin-redaction-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--background-primary);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-muted);
-    font-style: italic;
-    cursor: grab;
-    z-index: 10;
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: var(--background-primary);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: var(--text-muted);
+	font-style: italic;
+	cursor: grab;
+	z-index: 10;
+	transition:
+		transform 0.3s ease-out,
+		opacity 0.3s ease-out;
 }
 
 .privacy-plugin-blur-style .privacy-plugin-redaction-overlay {
-    backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
 }
 
 .privacy-plugin-redaction-overlay.is-dragging {
-    cursor: grabbing;
-    transition: none;
+	cursor: grabbing;
+	transition: none;
 }
 
 .privacy-plugin-redaction-content {
-    display: none;
+	display: none;
+}
+
+.privacy-plugin-redaction-overlay .privacy-plugin-icon {
+	/* Use flexbox to help center the icon */
+	display: inline-flex;
+	align-items: center;
+	margin-right: 8px;
+}
+
+/* This targets the SVG icon that Obsidian creates */
+.privacy-plugin-redaction-overlay .privacy-plugin-icon svg {
+	/* Give it an explicit size */
+	width: 16px;
+	height: 16px;
+
+	/* Give it an explicit color */
+	stroke: var(--text-muted);
 }

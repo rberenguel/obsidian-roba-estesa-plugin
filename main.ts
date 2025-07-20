@@ -1,14 +1,11 @@
-import {
-	App,
-	Plugin,
-	MarkdownView,
-} from "obsidian";
+import { App, Plugin, MarkdownView, setIcon, Notice } from "obsidian";
 import { RedactionManager } from "./src/RedactionManager";
 import { addPrivacyCommands } from "./src/commands";
 import { PrivacySettingTab } from "./src/SettingsTab";
 import { buildPrivacyViewPlugin } from "./src/PrivacyViewPlugin";
 
 export interface PrivacyPluginSettings {
+	isPrivacyModeActive: boolean; // Add this setting
 	enableTransitionOverlay: boolean;
 	transitionBlurAmount: number;
 	transitionDelay: number;
@@ -20,12 +17,13 @@ export interface PrivacyPluginSettings {
 }
 
 const DEFAULT_SETTINGS: PrivacyPluginSettings = {
+	isPrivacyModeActive: false,
 	enableTransitionOverlay: true,
 	transitionBlurAmount: 50,
 	transitionDelay: 300,
 	enableFullNotePrivacy: true,
 	privateTags: "private",
-	privateFrontmatterKey: "stealth",
+	privateFrontmatterKey: "private",
 	privateFolders: "",
 	redactionStyle: "Solid Block",
 };
@@ -34,9 +32,28 @@ export default class PrivacyPlugin extends Plugin {
 	settings: PrivacyPluginSettings;
 	private transitionOverlayEl: HTMLElement | null = null;
 	redactionManager: RedactionManager;
+	private ribbonIconEl: HTMLElement | null = null; // <-- Add property to store the icon element
 
 	constructor(app: App, manifest: any) {
 		super(app, manifest);
+	}
+
+	updateRibbonIcon() {
+		if (!this.ribbonIconEl) {
+			return;
+		}
+		const isPrivacyActive = this.settings.isPrivacyModeActive;
+
+		// Change the icon based on the mode
+		setIcon(this.ribbonIconEl, isPrivacyActive ? "eye-off" : "eye");
+
+		// Update the tooltip (aria-label) to reflect the action
+		this.ribbonIconEl.setAttribute(
+			"aria-label",
+			isPrivacyActive
+				? "Disable full privacy mode"
+				: "Enable full privacy mode",
+		);
 	}
 
 	async onload() {
@@ -52,8 +69,33 @@ export default class PrivacyPlugin extends Plugin {
 
 		addPrivacyCommands(this);
 
+		this.ribbonIconEl = this.addRibbonIcon(
+			"eye",
+			"Enable full privacy mode",
+			async () => {
+				this.settings.isPrivacyModeActive =
+					!this.settings.isPrivacyModeActive;
+				await this.saveSettings();
+
+				// Update the icon immediately after the click
+				this.updateRibbonIcon();
+
+				new Notice(
+					`Full privacy mode ${this.settings.isPrivacyModeActive ? "enabled" : "disabled"}.`,
+				);
+
+				const activeView =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (activeView) {
+					this.redactionManager.applyFullNoteRedaction(activeView);
+				}
+				this.app.workspace.updateOptions();
+			},
+		);
+
 		const handleFullNoteRedaction = () => {
-			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+			const activeView =
+				this.app.workspace.getActiveViewOfType(MarkdownView);
 			if (activeView) {
 				setTimeout(() => {
 					this.redactionManager.applyFullNoteRedaction(activeView);
@@ -63,8 +105,13 @@ export default class PrivacyPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.workspace.on("active-leaf-change", () => {
-				if (this.settings.enableTransitionOverlay && this.transitionOverlayEl) {
-					(this.transitionOverlayEl.style as any).backdropFilter = `blur(${this.settings.transitionBlurAmount}px)`;
+				if (
+					this.settings.isPrivacyModeActive &&
+					this.settings.enableTransitionOverlay &&
+					this.transitionOverlayEl
+				) {
+					(this.transitionOverlayEl.style as any).backdropFilter =
+						`blur(${this.settings.transitionBlurAmount}px)`;
 					this.transitionOverlayEl.style.opacity = "1";
 					this.transitionOverlayEl.style.display = "block";
 
@@ -73,8 +120,10 @@ export default class PrivacyPlugin extends Plugin {
 							this.transitionOverlayEl.style.opacity = "0";
 							this.transitionOverlayEl.ontransitionend = () => {
 								if (this.transitionOverlayEl) {
-									this.transitionOverlayEl.style.display = "none";
-									this.transitionOverlayEl.ontransitionend = null;
+									this.transitionOverlayEl.style.display =
+										"none";
+									this.transitionOverlayEl.ontransitionend =
+										null;
 								}
 							};
 						}
@@ -84,7 +133,9 @@ export default class PrivacyPlugin extends Plugin {
 			}),
 		);
 
-		this.registerEvent(this.app.workspace.on("layout-change", handleFullNoteRedaction));
+		this.registerEvent(
+			this.app.workspace.on("layout-change", handleFullNoteRedaction),
+		);
 	}
 
 	async loadSettings() {

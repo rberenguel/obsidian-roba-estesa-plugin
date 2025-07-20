@@ -1,7 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import PrivacyPlugin from "../main";
 
-
 export class PrivacySettingTab extends PluginSettingTab {
 	plugin: PrivacyPlugin;
 
@@ -19,7 +18,9 @@ export class PrivacySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Enable Transition Overlay")
-			.setDesc("Toggle to enable/disable the blurred overlay during note transitions.")
+			.setDesc(
+				"Toggle to enable/disable the blurred overlay during note transitions.",
+			)
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.enableTransitionOverlay)
@@ -31,7 +32,9 @@ export class PrivacySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Blur Amount")
-			.setDesc("Set the blur amount for the transition overlay (in pixels).")
+			.setDesc(
+				"Set the blur amount for the transition overlay (in pixels).",
+			)
 			.addSlider((slider) =>
 				slider
 					.setLimits(0, 100, 5)
@@ -45,7 +48,9 @@ export class PrivacySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Transition Delay")
-			.setDesc("Set the delay before the overlay fades out (in milliseconds).")
+			.setDesc(
+				"Set the delay before the overlay fades out (in milliseconds).",
+			)
 			.addText((text) =>
 				text
 					.setPlaceholder("e.g. 300")
@@ -79,7 +84,9 @@ export class PrivacySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Enable Full Note Privacy")
-			.setDesc("Toggle to enable/disable automatic full-note content redaction.")
+			.setDesc(
+				"Toggle to enable/disable automatic full-note content redaction.",
+			)
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.enableFullNotePrivacy)
@@ -91,7 +98,9 @@ export class PrivacySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Private Tag")
-			.setDesc("Tag to mark notes as private (e.g., 'private'). Do not include the '#'.")
+			.setDesc(
+				"Tag to mark notes as private (e.g., 'private'). Do not include the '#'.",
+			)
 			.addText((text) =>
 				text
 					.setPlaceholder("private")
@@ -104,10 +113,12 @@ export class PrivacySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Private Frontmatter Key")
-			.setDesc("Frontmatter key to mark notes as private (e.g., 'stealth: true').")
+			.setDesc(
+				"Frontmatter key to mark notes as private (e.g., 'private: true').",
+			)
 			.addText((text) =>
 				text
-					.setPlaceholder("stealth")
+					.setPlaceholder("private")
 					.setValue(this.plugin.settings.privateFrontmatterKey)
 					.onChange(async (value) => {
 						this.plugin.settings.privateFrontmatterKey = value;
@@ -117,10 +128,12 @@ export class PrivacySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Private Folders")
-			.setDesc("A comma-separated list of folder paths. Notes in these folders will be private.")
+			.setDesc(
+				"A comma-separated list of folder paths. Notes in these folders will be private.",
+			)
 			.addText((text) =>
 				text
-					.setPlaceholder("e.g. Journals/,Personal/")
+					.setPlaceholder("e.g. journal/,personal/")
 					.setValue(this.plugin.settings.privateFolders)
 					.onChange(async (value) => {
 						this.plugin.settings.privateFolders = value;

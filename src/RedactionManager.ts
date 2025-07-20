@@ -5,67 +5,96 @@ import { RedactionSliderComponent } from "./RedactionSliderComponent";
 import { PrivacyPluginSettings } from "../main";
 
 export class RedactionManager {
-    private app: App;
-    private settings: PrivacyPluginSettings;
+	private app: App;
+	private settings: PrivacyPluginSettings;
 
-    constructor(app: App, settings: PrivacyPluginSettings) {
-        this.app = app;
-        this.settings = settings;
-    }
+	constructor(app: App, settings: PrivacyPluginSettings) {
+		this.app = app;
+		this.settings = settings;
+	}
 
-    // Change this method from 'private' to 'public'
-    public isFullNotePrivate(file: TFile, fileCache: FrontMatterCache | null): boolean {
-        if (!this.settings.enableFullNotePrivacy) {
-            return false;
-        }
+	// Change this method from 'private' to 'public'
+	public isFullNotePrivate(
+		file: TFile,
+		fileCache: FrontMatterCache | null,
+	): boolean {
+		if (!this.settings.isPrivacyModeActive) {
+			return false;
+		}
 
-        const privateTags = this.settings.privateTags.split(",").map(t => t.trim()).filter(t => t.length > 0);
-        const hasPrivateTag = fileCache?.tags?.some(t => privateTags.includes(t.tag.substring(1))) ?? false;
-        if (hasPrivateTag) return true;
+		if (!this.settings.enableFullNotePrivacy) {
+			return false;
+		}
 
-        if (fileCache?.frontmatter?.[this.settings.privateFrontmatterKey] === true) {
-            return true;
-        }
+		const privateTags = this.settings.privateTags
+			.split(",")
+			.map((t) => t.trim())
+			.filter((t) => t.length > 0);
+		const hasPrivateTag =
+			fileCache?.tags?.some((t: any) =>
+				privateTags.includes(t.tag.substring(1)),
+			) ?? false;
+		if (hasPrivateTag) return true;
 
-        const privateFolders = this.settings.privateFolders.split(",").map(f => f.trim()).filter(f => f.length > 0 && f !== '/');
-        const inPrivateFolder = privateFolders.some(f => file.path.startsWith(f));
-        if (inPrivateFolder) return true;
+		if (
+			fileCache?.frontmatter?.[this.settings.privateFrontmatterKey] ===
+			true
+		) {
+			return true;
+		}
 
-        return false;
-    }
+		const privateFolders = this.settings.privateFolders
+			.split(",")
+			.map((f) => f.trim())
+			.filter((f) => f.length > 0 && f !== "/");
+		const inPrivateFolder = privateFolders.some((f) =>
+			file.path.startsWith(f),
+		);
+		if (inPrivateFolder) return true;
 
-    private sanitizeForCss(path: string): string {
-        return path.replace(/[^a-zA-Z0-9-]/g, '-');
-    }
+		return false;
+	}
 
-    // Replace the old method with this new, more robust version
-    public applyFullNoteRedaction(view: MarkdownView) {
-        const file = view.file;
-        if (!file) return;
+	private sanitizeForCss(path: string): string {
+		return path.replace(/[^a-zA-Z0-9-]/g, "-");
+	}
 
-        // --- NEW LOGIC: Always clean up existing overlays first ---
-        const existingOverlays = document.querySelectorAll(".privacy-plugin-full-note-overlay");
-        existingOverlays.forEach(el => el.remove());
-        // --- END OF CHANGE ---
+	// Replace the old method with this new, more robust version
+	public applyFullNoteRedaction(view: MarkdownView) {
+		const file = view.file;
+		if (!file) return;
 
-        const isPrivate = this.isFullNotePrivate(file, this.app.metadataCache.getFileCache(file));
-        
-        if (isPrivate) {
-            const containerEl = view.containerEl;
-            
-            // Create an overlay div that covers the entire view.
-            const overlay = containerEl.createDiv();
-            // Add a static class for easy cleanup next time
-            overlay.addClass("privacy-plugin-full-note-overlay");
-            overlay.style.position = 'absolute';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.zIndex = '50';
+		// --- NEW LOGIC: Always clean up existing overlays first ---
+		const existingOverlays = document.querySelectorAll(
+			".privacy-plugin-full-note-overlay",
+		);
+		existingOverlays.forEach((el) => el.remove());
+		// --- END OF CHANGE ---
 
-            new RedactionSliderComponent(overlay as HTMLElement, this.settings.redactionStyle);
-        }
-        // No 'else' block is needed anymore, as the cleanup runs unconditionally at the start.
-    }
+		const isPrivate = this.isFullNotePrivate(
+			file,
+			this.app.metadataCache.getFileCache(file),
+		);
+
+		if (isPrivate) {
+			const containerEl = view.containerEl;
+
+			// Create an overlay div that covers the entire view.
+			const overlay = containerEl.createDiv();
+			// Add a static class for easy cleanup next time
+			overlay.addClass("privacy-plugin-full-note-overlay");
+			overlay.style.position = "absolute";
+			overlay.style.top = "0";
+			overlay.style.left = "0";
+			overlay.style.width = "100%";
+			overlay.style.height = "100%";
+			overlay.style.zIndex = "50";
+
+			new RedactionSliderComponent(
+				overlay as HTMLElement,
+				this.settings.redactionStyle,
+			);
+		}
+		// No 'else' block is needed anymore, as the cleanup runs unconditionally at the start.
+	}
 }

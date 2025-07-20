@@ -1,30 +1,72 @@
-# Clau
+# Roba estesa: an Obsidian (soft) privacy plugin
 
-A quick switcher plugin for Obsidian with fuzzy search across all your notes.
+An Obsidian plugin to enhance user privacy through transient obfuscation and granular content redaction. Ideal for screen sharing, presentations, or working in public spaces where you want to selectively hide parts of your notes.
+
+> **Roba Estesa** is a Catalan expression for laundry hanging out to dry, used as a code phrase to warn that there are people present who shouldn't overhear a private conversation. It represents the act of marking certain information as "not for everyone" while it remains in plain view.
+
+---
 
 ## Features
 
-- **Fuzzy Search:** Quickly find notes by title or content using fuzzy matching.
-- **Content Context:** See a snippet of the matching content directly in the search results.
-- **Multiple Search Providers:** Choose between a fast, in-memory MiniSearch index or Obsidian's native search engine.
-- **Real-time Indexing:** Automatically updates the search index when notes are created, modified, or deleted.
+### 1. Granular Block Redaction
 
-## How to Use
+Hide specific paragraphs, bullet points, or lines of text within a note.
 
-1.  **Open Search:** Use the command palette (`Ctrl/Cmd + P`) and search for "Clau: Open Search".
-2.  **Type your query:**
-    *   **Private Search (`?`):** Start your query with a question mark to hide all context previews.
-    *   **Ignore Privacy (`!`):** Start your query with an exclamation mark to show all context previews, even for notes in private folders or with private tags.
-    *   **Title-Only Search (` `):** Start your query with a space to search only note titles.
-    *   **Fuzzy Search (`.`):** Start your query with a dot to enable typo-tolerant fuzzy matching.
-    *   **Term Exclusion (`-`):** Add a hyphen before a word to exclude notes containing it.
-    *   **Path Exclusion (`-/`):** Add `-/` before a path to exclude notes from that folder.
-    *   **Modifiers can be combined:** For example, `! . project spec -wip` will perform a fuzzy, title-only search for "project spec" while ignoring privacy and excluding notes with "wip".
-3.  **Re-build index:** If you encounter issues with search results, you can manually rebuild the index by searching for "Clau: Re-build index" in the command palette.
+-   **How to Use:**
+    1.  Place your cursor on the line you want to hide and run the `Mark block as private` command. This will add a block ID (e.g., `^a1b2c3`) to the end of the line and update the frontmatter.
+    2.  Redacted blocks are hidden behind a "Slide to reveal" component.
+    3.  Clicking on the redacted block reveals the original text for editing.
+-   **Manual Usage:** You can manually add a block ID (`^your-id`) to any line and add `your-id` to the `privacy` list in your note's YAML frontmatter.
 
-## Why not use [OmniSearch](https://github.com/scambier/obsidian-omnisearch)?
+**Example:**
+```yaml
+---
+privacy:
+  - a1b2c3
+---
 
-Tweaking your own plugin is kind of fun, also _sometimes_ I need plugins with the minimum amount of dependencies so I can confirm the code is safe. This is small enough I can check everything manually, and does _exactly_ what I want.
+This is a public paragraph.
+
+This paragraph is sensitive and should be hidden. ^a1b2c3
+
+- This list item is public.
+- This list item should also be hidden. ^d4e5f6
+```
+
+### 2. Full Privacy Mode
+
+A toggleable mode that hides entire notes based on tags, folders, or frontmatter keys. This mode is designed for situations where you need maximum privacy, like during a live presentation.
+
+-   **How to Use:**
+    -   Click the **eye-off** icon in the left-hand ribbon to enable Full Privacy Mode.
+    -   Click the **eye** icon to disable it.
+-   **Activation:** When enabled, any note will be completely hidden if it:
+    -   Contains a specific tag (e.g., `#private`).
+    -   Is inside a designated folder (e.g., `Journal/Private/`).
+    -   Contains a specific frontmatter key (e.g., `private: true`).
+    -   *All triggers are configurable in the plugin settings.*
+
+### 3. Note Transition Overlay
+
+To prevent content from flashing during navigation, a brief, blurred overlay covers the workspace when switching between notes.
+
+-   This feature is only active when **Full Privacy Mode** is enabled.
+
+---
+
+## Settings
+
+The plugin's behavior can be customized in the settings tab:
+
+-   **Content Redaction:** Choose the default appearance of redacted blocks (`Solid Block` or `Blur`).
+-   **Full-Note Privacy:**
+    -   Enable or disable the feature entirely.
+    -   Define the tags, frontmatter key, and folder paths that trigger full-note redaction.
+-   **Transition Overlay:**
+    -   Enable or disable the overlay.
+    -   Configure the blur amount and duration.
+
+---
 
 ## Installation
 
@@ -32,8 +74,8 @@ Tweaking your own plugin is kind of fun, also _sometimes_ I need plugins with th
 
 1.  Download the latest release files (`main.js`, `styles.css`, `manifest.json`) from the **Releases** page of the GitHub repository (or the zip file, contains all of these).
 2.  Find your Obsidian vault's plugins folder by going to `Settings` > `About` and clicking `Open` next to `Override config folder`. Inside that folder, navigate into the `plugins` directory.
-3.  Create a new folder named `clau`.
-4.  Copy the `main.js`, `manifest.json`, and `styles.css` files into the new `clau` folder.
+3.  Create a new folder named `roba-estesa`.
+4.  Copy the `main.js`, `manifest.json`, and `styles.css` files into the new `roba-estesa` folder.
 5.  In Obsidian, go to **Settings** > **Community Plugins**.
 6.  Make sure "Restricted mode" is turned off. Click the "Reload plugins" button.
-7.  Find "Clau" in the list and **enable** it.
+7.  Find "Roba Estesa" in the list and **enable** it.

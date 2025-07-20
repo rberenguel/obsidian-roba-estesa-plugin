@@ -1,6 +1,6 @@
 {
-	"name": "obsidian-privacy",
-	"version": "1.0.0",
+	"name": "roba-estesa",
+	"version": "0.1.0",
 	"description": "A plugin for Obsidian to enhance user privacy.",
 	"main": "main.js",
 	"scripts": {
