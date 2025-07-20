@@ -4,6 +4,7 @@ import { MarkdownView } from "obsidian";
 import PrivacyPlugin from "../main";
 import { RedactionSliderComponent } from "./RedactionSliderComponent";
 
+
 class RedactionWidget extends WidgetType {
     constructor(
         private readonly lineText: string,
@@ -14,12 +15,9 @@ class RedactionWidget extends WidgetType {
 
     toDOM(view: EditorView): HTMLElement {
         const container = document.createElement("div");
-
         const contentToHide = container.createDiv();
         contentToHide.textContent = this.lineText;
-
         new RedactionSliderComponent(container, this.plugin.settings.redactionStyle);
-
         return container;
     }
 
@@ -44,14 +42,19 @@ export function buildPrivacyViewPlugin(plugin: PrivacyPlugin) {
             }
 
             buildDecorations(view: EditorView): DecorationSet {
-                const builder = new RangeSetBuilder<Decoration>();
                 const activeView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-
                 if (!activeView || !activeView.file) {
-                    return builder.finish();
+                    return Decoration.none;
                 }
 
                 const fileCache = plugin.app.metadataCache.getFileCache(activeView.file);
+
+                if (plugin.redactionManager.isFullNotePrivate(activeView.file, fileCache)) {
+                    // Use Decoration.none for an empty set.
+                    return Decoration.none;
+                }
+                
+                const builder = new RangeSetBuilder<Decoration>();
                 const privateBlockIds = fileCache?.frontmatter?.privacy;
 
                 if (!privateBlockIds || !Array.isArray(privateBlockIds)) {

@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import PrivacyPlugin from "../main";
 
+
 export class PrivacySettingTab extends PluginSettingTab {
 	plugin: PrivacyPlugin;
 
@@ -11,12 +12,8 @@ export class PrivacySettingTab extends PluginSettingTab {
 
 	display(): void {
 		const { containerEl } = this;
-
 		containerEl.empty();
-
 		containerEl.createEl("h2", { text: "Privacy Plugin Settings" });
-
-		// Global Toggle - This is implicit in enabling/disabling the plugin in Obsidian
 
 		containerEl.createEl("h3", { text: "Transition Overlay" });
 
@@ -37,7 +34,7 @@ export class PrivacySettingTab extends PluginSettingTab {
 			.setDesc("Set the blur amount for the transition overlay (in pixels).")
 			.addSlider((slider) =>
 				slider
-					.setLimits(0, 100, 5) // Min, Max, Step
+					.setLimits(0, 100, 5)
 					.setValue(this.plugin.settings.transitionBlurAmount)
 					.setDynamicTooltip()
 					.onChange(async (value) => {

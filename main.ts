@@ -2,13 +2,11 @@ import {
 	App,
 	Plugin,
 	MarkdownView,
-	PluginSettingTab,
-	Setting,
 } from "obsidian";
 import { RedactionManager } from "./src/RedactionManager";
 import { addPrivacyCommands } from "./src/commands";
 import { PrivacySettingTab } from "./src/SettingsTab";
-import { buildPrivacyViewPlugin } from "src/PrivacyViewPlugin";
+import { buildPrivacyViewPlugin } from "./src/PrivacyViewPlugin";
 
 export interface PrivacyPluginSettings {
 	enableTransitionOverlay: boolean;
@@ -35,20 +33,17 @@ const DEFAULT_SETTINGS: PrivacyPluginSettings = {
 export default class PrivacyPlugin extends Plugin {
 	settings: PrivacyPluginSettings;
 	private transitionOverlayEl: HTMLElement | null = null;
-	private redactionManager: RedactionManager;
+	redactionManager: RedactionManager;
 
 	constructor(app: App, manifest: any) {
 		super(app, manifest);
-		console.log("[PrivacyPlugin] CONSTRUCTOR: Plugin created.");
 	}
 
 	async onload() {
 		await this.loadSettings();
 		this.redactionManager = new RedactionManager(this.app, this.settings);
 
-		// --- NEW: Register the CodeMirror ViewPlugin for granular redaction ---
 		this.registerEditorExtension(buildPrivacyViewPlugin(this));
-
 		this.addSettingTab(new PrivacySettingTab(this.app, this));
 
 		this.transitionOverlayEl = document.createElement("div");
@@ -60,7 +55,6 @@ export default class PrivacyPlugin extends Plugin {
 		const handleFullNoteRedaction = () => {
 			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 			if (activeView) {
-				// The timeout is still a good idea for stability
 				setTimeout(() => {
 					this.redactionManager.applyFullNoteRedaction(activeView);
 				}, 100);
@@ -86,13 +80,10 @@ export default class PrivacyPlugin extends Plugin {
 						}
 					}, this.settings.transitionDelay);
 				}
-				// The granular redaction is now handled automatically by the ViewPlugin.
-				// We only need to manually trigger the full-note redaction.
 				handleFullNoteRedaction();
 			}),
 		);
 
-		// layout-change can still trigger a check for full-note redaction.
 		this.registerEvent(this.app.workspace.on("layout-change", handleFullNoteRedaction));
 	}
 

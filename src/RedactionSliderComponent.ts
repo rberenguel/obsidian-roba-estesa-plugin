@@ -74,6 +74,14 @@ export class RedactionSliderComponent {
             this.overlayEl.style.transform = `translateX(100%)`;
             this.overlayEl.style.opacity = "0";
             this.overlayEl.ontransitionend = () => {
+                // --- ADD THIS CHECK ---
+                // If there's no content to reveal, just remove the entire container.
+                if (this.contentEl.childNodes.length === 0) {
+                    this.containerEl.remove();
+                    return;
+                }
+                // --- END OF CHANGE ---
+
                 this.updateVisibility();
                 this.overlayEl.ontransitionend = null;
             };

@@ -1,4 +1,6 @@
-import { App, MarkdownPostProcessorContext, MarkdownView, TFile, FrontMatterCache } from "obsidian";
+// src/RedactionManager.ts
+
+import { App, MarkdownView, FrontMatterCache, TFile } from "obsidian";
 import { RedactionSliderComponent } from "./RedactionSliderComponent";
 import { PrivacyPluginSettings } from "../main";
 
@@ -11,7 +13,8 @@ export class RedactionManager {
         this.settings = settings;
     }
 
-    private isFullNotePrivate(file: TFile, fileCache: FrontMatterCache | null): boolean {
+    // Change this method from 'private' to 'public'
+    public isFullNotePrivate(file: TFile, fileCache: FrontMatterCache | null): boolean {
         if (!this.settings.enableFullNotePrivacy) {
             return false;
         }
@@ -35,41 +38,34 @@ export class RedactionManager {
         return path.replace(/[^a-zA-Z0-9-]/g, '-');
     }
 
+    // Replace the old method with this new, more robust version
     public applyFullNoteRedaction(view: MarkdownView) {
         const file = view.file;
         if (!file) return;
 
-        const fileCache = this.app.metadataCache.getFileCache(file);
-        const isPrivate = this.isFullNotePrivate(file, fileCache);
-        const contentEl = view.contentEl;
-        const overlayId = `privacy-plugin-full-note-overlay-${this.sanitizeForCss(file.path)}`;
-        let overlay = view.containerEl.querySelector(`#${overlayId}`);
+        // --- NEW LOGIC: Always clean up existing overlays first ---
+        const existingOverlays = document.querySelectorAll(".privacy-plugin-full-note-overlay");
+        existingOverlays.forEach(el => el.remove());
+        // --- END OF CHANGE ---
 
+        const isPrivate = this.isFullNotePrivate(file, this.app.metadataCache.getFileCache(file));
+        
         if (isPrivate) {
-            if (overlay) return;
-
-            overlay = contentEl.createDiv({ cls: "privacy-plugin-redaction-container" });
-            overlay.id = overlayId;
-
-            const previewEl = contentEl.querySelector('.markdown-preview-view');
-            if (previewEl) {
-                Array.from(previewEl.childNodes).forEach(node => {
-                    overlay!.appendChild(node);
-                });
-            }
+            const containerEl = view.containerEl;
+            
+            // Create an overlay div that covers the entire view.
+            const overlay = containerEl.createDiv();
+            // Add a static class for easy cleanup next time
+            overlay.addClass("privacy-plugin-full-note-overlay");
+            overlay.style.position = 'absolute';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.zIndex = '50';
 
             new RedactionSliderComponent(overlay as HTMLElement, this.settings.redactionStyle);
-        } else {
-            if (overlay) {
-                const previewEl = contentEl.querySelector('.markdown-preview-view');
-                const wrapper = overlay.querySelector('.privacy-plugin-redaction-content');
-                if (previewEl && wrapper) {
-                    Array.from(wrapper.childNodes).forEach(node => {
-                        previewEl.appendChild(node);
-                    });
-                }
-                overlay.remove();
-            }
         }
+        // No 'else' block is needed anymore, as the cleanup runs unconditionally at the start.
     }
 }
